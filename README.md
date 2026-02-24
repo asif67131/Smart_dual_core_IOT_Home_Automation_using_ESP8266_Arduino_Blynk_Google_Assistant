@@ -20,11 +20,13 @@ The system operates on a specialized **Master-Slave Serial Protocol**:
 1. **Master (ESP8266):** Acts as the Cloud Gateway. It processes voice packets from **Sinric Pro**, virtual pins from **Blynk**, and sends structured string commands (e.g., `DOOR_OPEN`) to the Arduino via UART.
 2. **Slave (Arduino Uno):** Acts as the Hardware Executor. It manages the **PWM signal for the MG996R Servo**, handles the **active-low relay switching** for the 12V Solenoid, and monitors physical button interrupts for the lights.
 
+
+
 ---
 
 ## 🚀 Features <a name="features"></a>
-* **Voice-Activated Hinge:** Servo moves 0° to 90° on voice command.
-* **Spring-Latch Logic:** Solenoid retracts only during the "Open" phase. During "Close," the servo swings the door back, allowing the sloped latch to click shut mechanically.
+* **Voice-Activated Hinge:** Servo moves 0° to 90° via high-precision PWM control.
+* **Spring-Latch Logic:** Solenoid retracts only during the "Open" phase. During "Close," the servo swings the door back, allowing the sloped latch to click shut mechanically, saving power and reducing heat.
 * **Cloud-Native:** Fully integrated with Google Assistant and Blynk IoT.
 * **Bi-directional Sync:** Manual button presses on the Arduino update the Google Home and Blynk app status in real-time.
 
@@ -33,16 +35,16 @@ The system operates on a specialized **Master-Slave Serial Protocol**:
 ## 🛠️ Components Used <a name="components-used"></a>
 * **Microcontrollers:** 1x NodeMCU ESP8266, 1x Arduino Uno.
 * **Motion:** 1x MG996R High-Torque Servo.
-* **Security:** 1x 12V DC Solenoid Lock + 1N4007 Diode.
+* **Security:** 1x 12V DC Solenoid Lock + 1N4007 Diode (Flyback Protection).
 * **Switching:** 4-Channel 5V Relay Module.
-* **Power:** 12V 2A Adapter (Lock) & 5V 2A Adapter (Servo/Logic).
+* **Power:** 12V 2A Adapter (Lock & LED) & 5V 2A Adapter (Servo & Logic).
 
 ---
 
 ## 🔌 Circuit Connections <a name="circuit-connections"></a>
 
 ### 1. The Serial Bridge (UART)
-Since the Arduino works at 5V and ESP8266 at 3.3V, a **Voltage Divider** is required on the Arduino's TX line to protect the ESP8266 RX pin.
+Since the Arduino works at 5V and ESP8266 at 3.3V, a **Voltage Divider** is used on the Arduino's TX line to protect the ESP8266.
 * **Arduino TX (Pin 1)** ⮕ `1kΩ Resistor` ⮕ **ESP8266 RX (Pin RX)**
 * **ESP8266 RX (Pin RX)** ⮕ `2kΩ Resistor` ⮕ **GND**
 * **ESP8266 TX (Pin TX)** ⮕ **Arduino RX (Pin 0)**
@@ -57,10 +59,10 @@ Since the Arduino works at 5V and ESP8266 at 3.3V, a **Voltage Divider** is requ
 ### 3. Arduino (Slave) Pin Mapping
 | Component | Arduino Pin | Function |
 | :--- | :--- | :--- |
-| **Servo Signal** | D10 | PWM Control for Hinge |
+| **Servo Signal** | D10 | PWM Control (Required for precise angles) |
 | **Relay 1 & 2** | D2, D3 | Light 1 & Light 2 |
 | **Relay 3** | D4 | 12V Solenoid Control |
-| **Relay 4** | D5 | Synchronized Door Light |
+| **Relay 4** | D5 | 12V Synchronized Door Light |
 | **Buttons 1 & 2** | D6, D7 | Manual Overrides |
 | **Status LED** | A4 | Local Execution Feedback |
 
