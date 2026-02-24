@@ -1,5 +1,7 @@
 # 🏠 Dual-Core IoT Hub: Smart Hinge & Security System
 
+A high-performance IoT ecosystem that bridges cloud intelligence with precise hardware execution. This project utilizes an **ESP8266** for multi-platform connectivity (Google Home, Blynk) and an **Arduino Uno** to manage a motorized door assembly featuring a high-torque servo hinge, a synchronized entry light, and an automated solenoid security lock with spring-latch logic.
+
 ## 📍 Table of Contents
 * [🏠 System Architecture](#system-architecture)
 * [🚀 Features](#features)
