@@ -20,14 +20,15 @@ char pass[] = "11223344";
 #define ID_LIGHT_2 "699d9575db0f6e0b158f4514"
 #define ID_DOOR    "699d95b617b32c0941c51d5b"
 
-const int espStatusLed = 13; // D7
-const int buzzer = 15;      // D8
-
-// --- FIX: Create global references for the devices ---
+// Global references for SinricPro v3.0 syntax
 SinricProSwitch& mySwitch1 = SinricPro[ID_LIGHT_1];
 SinricProSwitch& mySwitch2 = SinricPro[ID_LIGHT_2];
 SinricProSwitch& myDoor = SinricPro[ID_DOOR];
 
+const int espStatusLed = 13; // D7
+const int buzzer = 15;      // D8
+
+// SINRIC PRO CALLBACK
 bool onPowerState(const String &deviceId, bool &state) {
   if (deviceId == ID_LIGHT_1) {
     Serial.println(state ? "R0_ON" : "R0_OFF");
@@ -46,21 +47,32 @@ bool onPowerState(const String &deviceId, bool &state) {
       Blynk.virtualWrite(V2, 0);
     }
   }
+  
+  // Feedback
   digitalWrite(espStatusLed, HIGH);
   digitalWrite(buzzer, HIGH); delay(100); digitalWrite(buzzer, LOW);
-  delay(2000); digitalWrite(espStatusLed, LOW);
+  delay(1000); digitalWrite(espStatusLed, LOW);
   return true;
+}
+
+// BLYNK WRITE CALLBACKS
+BLYNK_WRITE(V0) { Serial.println(param.asInt() ? "R0_ON" : "R0_OFF"); mySwitch1.sendPowerStateEvent(param.asInt()); }
+BLYNK_WRITE(V1) { Serial.println(param.asInt() ? "R1_ON" : "R1_OFF"); mySwitch2.sendPowerStateEvent(param.asInt()); }
+BLYNK_WRITE(V2) { 
+  if(param.asInt()) { Serial.println("DOOR_OPEN"); } 
+  else { Serial.println("DOOR_CLOSE"); }
+  myDoor.sendPowerStateEvent(param.asInt());
 }
 
 void setup() {
   Serial.begin(9600);
   pinMode(espStatusLed, OUTPUT);
   pinMode(buzzer, OUTPUT);
+  
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   Blynk.begin(auth, ssid, pass);
   ArduinoOTA.begin();
 
-  // Register callbacks using the global references
   mySwitch1.onPowerState(onPowerState);
   mySwitch2.onPowerState(onPowerState);
   myDoor.onPowerState(onPowerState);
@@ -73,6 +85,7 @@ void loop() {
   SinricPro.handle();
   ArduinoOTA.handle();
 
+  // Sync back from Arduino (Physical buttons)
   if (Serial.available() > 0) {
     String feedback = Serial.readStringUntil('\n');
     feedback.trim();
@@ -80,8 +93,6 @@ void loop() {
       int id = feedback.substring(1, 2).toInt();
       int state = feedback.substring(2).toInt();
       Blynk.virtualWrite(id, state);
-      
-      // --- FIX: Use the switch references to send events ---
       if(id == 0) mySwitch1.sendPowerStateEvent(state == 1);
       if(id == 1) mySwitch2.sendPowerStateEvent(state == 1);
     }
