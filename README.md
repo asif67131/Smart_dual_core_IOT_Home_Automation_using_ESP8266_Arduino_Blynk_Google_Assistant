@@ -1,5 +1,5 @@
-# 🏠 Dual-Core IoT Hub: 4-Channel Smart Home System
-A robust, hybrid home automation system leveraging **ESP8266** for cloud intelligence and **Arduino** for hardware execution. Featuring Google Assistant voice control, Blynk app integration, and physical manual overrides with bi-directional sync.
+# 🏠 Dual-Core IoT Hub: Smart Hinge & Security System
+An advanced, hybrid home automation system using **ESP8266** for cloud intelligence and **Arduino** for high-torque hardware execution. This project features a motorized door hinge (Servo), an automated security lock (Solenoid), and dual-channel lighting.
 
 ---
 
@@ -10,51 +10,63 @@ A robust, hybrid home automation system leveraging **ESP8266** for cloud intelli
 * [Circuit Connections](#-circuit-connections)
 * [Installation & Setup](#-installation--setup)
 * [Troubleshooting](#-troubleshooting)
-* [Future Scope](#-future-scope)
 * [Source Code](#-source-code)
 * [Social Connect](#-social-connect)
 
 ---
 
 ## ⚙️ System Architecture
-This project uses a **Master-Slave configuration**:
-1. **Master (ESP8266):** Manages WiFi, Blynk IoT Cloud, Sinric Pro (Google Assistant), and OTA updates.
-2. **Slave (Arduino):** Handles 4-channel relay switching, hardware debouncing for buttons, and local LED status feedback.
-3. **Communication:** UART Serial with a 5V-to-3.3V Logic Level Divider.
+This project utilizes a **Master-Slave configuration**:
+1. **Master (ESP8266):** Handles WiFi connectivity, Blynk IoT App, Sinric Pro (Google Assistant), and serial command dispatching.
+2. **Slave (Arduino):** Executes time-sensitive hardware movements including PWM for the Servo Hinge and Relay switching for the Solenoid/Lights.
+3. **Communication:** UART Serial with a Logic Level Divider for bi-directional status synchronization.
 
 ---
 
 ## 🚀 Features
-* **Voice Control:** Native Google Assistant integration via Sinric Pro.
-* **Live Monitoring:** Real-time relay status on Blynk IoT app.
-* **Manual Override:** 4 physical buttons that work even if WiFi is disconnected.
-* **Bi-directional Sync:** Physical button presses update the Cloud status instantly.
-* **OTA Updates:** Flash new firmware to the ESP8266 wirelessly.
-* **Visual/Audio Feedback:** 3-second status LED glow and buzzer chirps on commands.
+* **Motorized Door Hinge:** Automatic 90° opening and 0° closing via a high-torque Servo.
+* **Smart Security Lock:** 12V Solenoid acts as a spring-latch; unlocks automatically during "Open" command and remains locked during "Close" to allow the door to click shut.
+* **Synchronized Entry Lighting:** The door light activates automatically when the door opens and stays ON until the door is closed.
+* **Voice Control:** Native Google Assistant integration ("Hey Google, open the door").
+* **Live Monitoring:** Real-time status updates on the Blynk IoT app for all channels.
+* **Manual Override:** Physical buttons for lighting with instant cloud sync.
 
 ---
 
 ## 🛠 Components Used
 * **Microcontrollers:** 1x NodeMCU (ESP8266), 1x Arduino Uno/Nano.
-* **Actuators:** 1x 4-Channel 5V Relay Module.
-* **Inputs:** 4x Tactile Push Buttons.
-* **Safety:** 1x 1kΩ Resistor, 1x 2kΩ Resistor (Voltage Divider).
-* **Indicators:** 2x LEDs, 1x Active Buzzer.
-* **Power:** 5V 2A DC Power Adapter.
+* **Actuators:** 1x MG996R High-Torque Servo, 1x 12V DC Solenoid Lock, 4-Channel Relay Module.
+* **Safety:** 1N4007 Flyback Diode (for Solenoid), 1kΩ & 2kΩ Resistors (Logic Divider).
+* **Power:** 12V 2A DC Adapter (for Solenoid), 5V 2A External Supply (for Servo).
 
 ---
 
 ## 🔌 Circuit Connections
 ### **Logic Level Bridge**
-> ⚠️ **Crucial:** The Arduino TX (5V) must pass through a voltage divider before hitting ESP8266 RX (3.3V).
-* **Arduino TX (Pin 1)** ⮕ `1kΩ Resistor` ⮕ **ESP8266 RX**
+* **Arduino TX (5V)** ⮕ `1kΩ Resistor` ⮕ **ESP8266 RX (3.3V)**
 * **ESP8266 RX** ⮕ `2kΩ Resistor` ⮕ **GND**
+
+### **Pin Mapping**
+| Component | Arduino Pin | Description |
+| :--- | :--- | :--- |
+| **Servo Hinge** | D10 | PWM Signal for Door Movement |
+| **Solenoid Lock** | D4 (Relay 3) | 12V Latch Control |
+| **Door Light** | D5 (Relay 4) | Synchronized Entry Light |
+| **Light 1 & 2** | D2, D3 | Individual Room Lighting |
+| **Status LED** | A4 | Visual Command Confirmation |
 
 ---
 
 ## 📂 Source Code
-* [📂 ESP8266 Master Code](./ESP8266_Master.ino)
-* [📂 Arduino Slave Code](./Arduino_Slave.ino)
+* [📂 ESP8266 Master Code](./ESP8266_Master.ino) - *Includes Fixed SinricPro v3.0 syntax*
+* [📂 Arduino Slave Code](./Arduino_Slave.ino) - *Includes Servo & Spring-Latch Logic*
+
+---
+
+## 🛠 Installation & Setup
+1. **Google Home:** Search for **Sinric Pro** in "Works with Google" and link your account.
+2. **Servo Calibration:** Ensure the door is physically at 0° when the code starts.
+3. **Solenoid Warning:** Always use the 1N4007 diode across the solenoid terminals to prevent ESP8266 resets.
 
 ---
 
