@@ -4,7 +4,7 @@ An advanced, hybrid home automation system using **ESP8266** for cloud intellige
 ---
 
 ## 📍 Table of Contents
-* [System Architecture](#-system-architecture)
+* [System Architecture](#system-architecture)
 * [Features](#-features)
 * [Components Used](#-components-used)
 * [Circuit Connections](#-circuit-connections)
