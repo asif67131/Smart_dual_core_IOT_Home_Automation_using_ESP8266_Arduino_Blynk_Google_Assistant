@@ -19,17 +19,14 @@ The system operates on a specialized **Master-Slave Serial Protocol**:
 
 1. **Master (ESP8266):** Acts as the Cloud Gateway. It processes voice packets from **Sinric Pro**, virtual pins from **Blynk**, and sends structured string commands (e.g., `DOOR_OPEN`) to the Arduino via UART.
 2. **Slave (Arduino Uno):** Acts as the Hardware Executor. It manages the **PWM signal for the MG996R Servo**, handles the **active-low relay switching** for the 12V Solenoid, and monitors physical button interrupts for the lights.
-3. **Synchronization:** When a physical button is pressed, the Arduino sends a status packet (e.g., `S01`) back to the ESP8266 to update the Google Home and Blynk cloud states.
-
-
 
 ---
 
 ## 🚀 Features <a name="features"></a>
 * **Voice-Activated Hinge:** Servo moves 0° to 90° on voice command.
-* **Spring-Latch Logic:** Solenoid retracts only during the "Open" phase. During "Close," the servo swings the door back, allowing the sloped latch to click shut mechanically without electrical power.
+* **Spring-Latch Logic:** Solenoid retracts only during the "Open" phase. During "Close," the servo swings the door back, allowing the sloped latch to click shut mechanically.
 * **Cloud-Native:** Fully integrated with Google Assistant and Blynk IoT.
-* **Dual-Core Reliability:** If WiFi fails, the Arduino continues to manage the door and lights via physical buttons.
+* **Bi-directional Sync:** Manual button presses on the Arduino update the Google Home and Blynk app status in real-time.
 
 ---
 
@@ -43,18 +40,29 @@ The system operates on a specialized **Master-Slave Serial Protocol**:
 ---
 
 ## 🔌 Circuit Connections <a name="circuit-connections"></a>
-### Logic Level Bridge
-* **Arduino TX (5V)** ⮕ `1kΩ Resistor` ⮕ **ESP8266 RX (3.3V)**
-* **ESP8266 RX** ⮕ `2kΩ Resistor` ⮕ **GND**
 
-### Pin Mapping
+### 1. The Serial Bridge (UART)
+Since the Arduino works at 5V and ESP8266 at 3.3V, a **Voltage Divider** is required on the Arduino's TX line to protect the ESP8266 RX pin.
+* **Arduino TX (Pin 1)** ⮕ `1kΩ Resistor` ⮕ **ESP8266 RX (Pin RX)**
+* **ESP8266 RX (Pin RX)** ⮕ `2kΩ Resistor` ⮕ **GND**
+* **ESP8266 TX (Pin TX)** ⮕ **Arduino RX (Pin 0)**
+
+### 2. ESP8266 (Master) Pin Mapping
+| Component | ESP8266 Pin | Function |
+| :--- | :--- | :--- |
+| **Status LED** | D7 (GPIO 13) | Heartbeat & Command Indicator |
+| **Buzzer** | D8 (GPIO 15) | Audio Feedback for Commands |
+| **UART RX/TX** | RX / TX | Communication with Arduino |
+
+### 3. Arduino (Slave) Pin Mapping
 | Component | Arduino Pin | Function |
 | :--- | :--- | :--- |
-| **Servo Signal** | D10 | PWM Control |
+| **Servo Signal** | D10 | PWM Control for Hinge |
 | **Relay 1 & 2** | D2, D3 | Light 1 & Light 2 |
-| **Relay 3** | D4 | 12V Solenoid |
-| **Relay 4** | D5 | Door Light |
-| **Buttons** | D6, D7 | Manual Overrides |
+| **Relay 3** | D4 | 12V Solenoid Control |
+| **Relay 4** | D5 | Synchronized Door Light |
+| **Buttons 1 & 2** | D6, D7 | Manual Overrides |
+| **Status LED** | A4 | Local Execution Feedback |
 
 ---
 
@@ -66,9 +74,9 @@ The system operates on a specialized **Master-Slave Serial Protocol**:
 ---
 
 ## ❓ Troubleshooting <a name="troubleshooting"></a>
-* **Servo Jitter:** This usually happens due to insufficient current. Ensure the Servo has its own 5V 2A power source and shares a **Common Ground** with the Arduino.
-* **Solenoid Overheating:** The code includes a 5-second cutoff for the solenoid. If it stays retracted longer, check the `DOOR_OPEN` delay in the Arduino sketch.
-* **Google Home "Offline":** Ensure the ESP8266 Serial Monitor shows `[SinricPro]: Connected`. If not, verify your `APP_KEY` and `APP_SECRET`.
+* **Serial Conflict:** Disconnect the RX/TX wires between the boards while uploading code via USB.
+* **Common Ground:** Ensure the GND pins of the 12V supply, 5V supply, Arduino, and ESP8266 are all tied together.
+* **Servo Jitter:** Ensure the Servo has its own dedicated 5V 2A power source; do not power it from the Arduino 5V pin.
 
 ---
 
@@ -83,3 +91,5 @@ The system operates on a specialized **Master-Slave Serial Protocol**:
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/your-profile-link)
 [![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:your-email@example.com)
+
+---
