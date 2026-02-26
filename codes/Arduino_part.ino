@@ -1,75 +1,176 @@
 #include <Servo.h>
 
-Servo doorHinge;
+// --- Pin Definitions ---
+const int RELAY_L1 = 2;
+const int RELAY_L2 = 3;
+const int RELAY_SOLENOID = 4;
+const int RELAY_PUMP = 5;
 
-// Pin Definitions
-const int relayPins[] = {2, 3, 4, 5}; // 0:Light1, 1:Light2, 2:Solenoid, 3:DoorLight
-const int buttonPins[] = {6, 7};      // Physical buttons for Light 1 and 2
-const int servoPin = 10;
-const int statusLed = A4;
+const int BTN_L1 = 7;
+const int BTN_L2 = 8;
+const int BTN_SOLENOID = 12;
 
-bool relayStates[] = {HIGH, HIGH, HIGH, HIGH}; // Active LOW relays
-bool lastButtonStates[] = {HIGH, HIGH};
+const int SOIL_SENSOR_SIG = A0; 
+const int SOIL_SENSOR_PWR = 13; // Power pin to prevent corrosion
+
+const int SERVO_PIN = 9;
+const int DOOR_LED = 6;       
+const int INDICATOR_LED = 11; 
+
+// --- Objects & Variables ---
+Servo doorServo;
+unsigned long lastSoilCheck = 0;
+unsigned long doorOpenMillis = 0;
+bool doorIsOpening = false;
+bool doorPhysicalState = false; 
+
+int brightness = 0;
+int fadeAmount = 5;
+unsigned long lastLEDUpdate = 0;
 
 void setup() {
   Serial.begin(9600);
-  doorHinge.attach(servoPin);
-  pinMode(statusLed, OUTPUT);
   
-  for (int i = 0; i < 4; i++) {
-    pinMode(relayPins[i], OUTPUT);
-    digitalWrite(relayPins[i], HIGH); 
-  }
+  pinMode(RELAY_L1, OUTPUT);
+  pinMode(RELAY_L2, OUTPUT);
+  pinMode(RELAY_SOLENOID, OUTPUT);
+  pinMode(RELAY_PUMP, OUTPUT);
   
-  for (int i = 0; i < 2; i++) {
-    pinMode(buttonPins[i], INPUT_PULLUP);
-  }
+  // Initialize Relays OFF (Active Low)
+  digitalWrite(RELAY_L1, HIGH);
+  digitalWrite(RELAY_L2, HIGH);
+  digitalWrite(RELAY_SOLENOID, HIGH);
+  digitalWrite(RELAY_PUMP, HIGH);
 
-  doorHinge.write(0); // Ensure door starts closed
+  pinMode(BTN_L1, INPUT_PULLUP);
+  pinMode(BTN_L2, INPUT_PULLUP);
+  pinMode(BTN_SOLENOID, INPUT_PULLUP);
+  pinMode(DOOR_LED, OUTPUT);
+  pinMode(INDICATOR_LED, OUTPUT);
+  
+  pinMode(SOIL_SENSOR_PWR, OUTPUT);
+  digitalWrite(SOIL_SENSOR_PWR, LOW); 
+  
+  doorServo.attach(SERVO_PIN);
+  doorServo.write(0); 
 }
 
 void loop() {
-  // 1. Handle Serial Commands from ESP8266
+  handleSerialInput();
+  handlePhysicalButtons();
+  handleSoilAutomation();
+  handleIndicatorLED();
+  handleDoorTimer();
+}
+
+void handleSerialInput() {
   if (Serial.available() > 0) {
-    String command = Serial.readStringUntil('\n');
-    command.trim();
+    flickerIndicator();
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
 
-    if (command == "R0_ON") digitalWrite(relayPins[0], LOW);
-    else if (command == "R0_OFF") digitalWrite(relayPins[0], HIGH);
-    else if (command == "R1_ON") digitalWrite(relayPins[1], LOW);
-    else if (command == "R1_OFF") digitalWrite(relayPins[1], HIGH);
+    if (cmd == "L1_ON")  digitalWrite(RELAY_L1, LOW);
+    if (cmd == "L1_OFF") digitalWrite(RELAY_L1, HIGH);
+    if (cmd == "L2_ON")  digitalWrite(RELAY_L2, LOW);
+    if (cmd == "L2_OFF") digitalWrite(RELAY_L2, HIGH);
     
-    else if (command == "DOOR_OPEN") {
-      digitalWrite(relayPins[3], LOW);    // Door Light ON
-      digitalWrite(relayPins[2], LOW);    // Unlock Solenoid
-      delay(800);                         // Wait for latch to pull back
-      doorHinge.write(90);                // Swing door open
-      delay(4200);                        // Keep solenoid open for 5s total
-      digitalWrite(relayPins[2], HIGH);   // Lock Solenoid (Spring-latch ready)
-      digitalWrite(statusLed, HIGH); delay(1000); digitalWrite(statusLed, LOW);
-    }
-    else if (command == "DOOR_CLOSE") {
-      doorHinge.write(0);                 // Swing door closed
-      digitalWrite(relayPins[3], HIGH);   // Door Light OFF
-      // Note: Solenoid Relay (2) is NOT touched. Door latches mechanically.
-      digitalWrite(statusLed, HIGH); delay(1000); digitalWrite(statusLed, LOW);
-    }
+    if (cmd == "DR_OPEN")  openDoorSequence();
+    if (cmd == "DR_CLOSE") closeDoorSequence();
+    
+    if (cmd == "PUMP_ON")  digitalWrite(RELAY_PUMP, LOW);
+    if (cmd == "PUMP_OFF") digitalWrite(RELAY_PUMP, HIGH);
   }
+}
 
-  // 2. Handle Physical Buttons (Toggle logic)
-  for (int i = 0; i < 2; i++) {
-    bool currentState = digitalRead(buttonPins[i]);
-    if (currentState == LOW && lastButtonStates[i] == HIGH) {
-      relayStates[i] = !relayStates[i];
-      digitalWrite(relayPins[i], relayStates[i] ? HIGH : LOW);
-      
-      // Send sync back to ESP8266
-      Serial.print("S");
-      Serial.print(i);
-      Serial.println(relayStates[i] ? "0" : "1");
-      
-      delay(200); // Debounce
+void handlePhysicalButtons() {
+  if (digitalRead(BTN_L1) == LOW) {
+    digitalWrite(RELAY_L1, !digitalRead(RELAY_L1));
+    Serial.println("BTN1_PRESS"); 
+    flickerIndicator();
+    delay(400); 
+  }
+  
+  if (digitalRead(BTN_L2) == LOW) {
+    digitalWrite(RELAY_L2, !digitalRead(RELAY_L2));
+    Serial.println("BTN2_PRESS");
+    flickerIndicator();
+    delay(400);
+  }
+  
+  if (digitalRead(BTN_SOLENOID) == LOW) {
+    if(!doorPhysicalState) openDoorSequence();
+    else closeDoorSequence();
+    
+    Serial.println("BTN_DOOR_PRESS");
+    flickerIndicator();
+    delay(400);
+  }
+}
+
+void handleSoilAutomation() {
+  // Interval set to 10 seconds (10000ms)
+  if (millis() - lastSoilCheck > 10000) {
+    
+    // Power on sensor, wait for stabilization, then read
+    digitalWrite(SOIL_SENSOR_PWR, HIGH);
+    delay(20); 
+    int rawValue = analogRead(SOIL_SENSOR_SIG);
+    digitalWrite(SOIL_SENSOR_PWR, LOW); // Turn off immediately
+    
+    // Map values: 1023 (Dry) to 200 (Very Wet)
+    int moisturePercent = map(rawValue, 1023, 200, 0, 100);
+    moisturePercent = constrain(moisturePercent, 0, 100);
+    
+    // Send to ESP8266 for Blynk Gauge
+    Serial.print("SOIL:");
+    Serial.println(moisturePercent);
+
+    // Trigger pump if below 20%
+    if (moisturePercent < 20) {
+      digitalWrite(RELAY_PUMP, LOW);
+      delay(1000); 
+      digitalWrite(RELAY_PUMP, HIGH);
     }
-    lastButtonStates[i] = currentState;
+    lastSoilCheck = millis();
+  }
+}
+
+void openDoorSequence() {
+  digitalWrite(RELAY_SOLENOID, LOW); 
+  doorServo.write(90);
+  digitalWrite(DOOR_LED, HIGH);
+  doorOpenMillis = millis();
+  doorIsOpening = true;
+  doorPhysicalState = true;
+}
+
+void closeDoorSequence() {
+  doorServo.write(0);
+  digitalWrite(DOOR_LED, LOW);
+  digitalWrite(RELAY_SOLENOID, HIGH); 
+  doorIsOpening = false;
+  doorPhysicalState = false;
+}
+
+void handleDoorTimer() {
+  if (doorIsOpening && (millis() - doorOpenMillis > 3000)) {
+    digitalWrite(RELAY_SOLENOID, HIGH); 
+    doorIsOpening = false;
+  }
+}
+
+void handleIndicatorLED() {
+  if (millis() - lastLEDUpdate >= 30) {
+    brightness = brightness + fadeAmount;
+    if (brightness <= 0 || brightness >= 255) fadeAmount = -fadeAmount;
+    analogWrite(INDICATOR_LED, brightness);
+    lastLEDUpdate = millis();
+  }
+}
+
+void flickerIndicator() {
+  for(int i=0; i<4; i++) {
+    digitalWrite(INDICATOR_LED, HIGH); delay(40);
+    digitalWrite(INDICATOR_LED, LOW);  delay(40);
   }
 }
