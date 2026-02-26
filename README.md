@@ -56,7 +56,7 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 *Connections.*
 
 ### **Flow Chart**
-![Circuit Flow-Chart](crkt_diag.jpg)
+![Circuit Flow-Chart](images/crkt_diag.jpg)
 *Flow-Chart for Connections.*
 
 ### **Blynk IoT Dashboard**
