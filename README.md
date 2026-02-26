@@ -46,7 +46,7 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 ## 📸 Product Gallery
 
 ### **Final Hardware Assembly**
-![Project Build Image 1](https://via.placeholder.com/800x450?text=Hardware+Assembly+View)
+![Circuit Flow-Chart](crkt_diag.jpg)
 *Full view of the hardware assembly including the motorized hinge and control hub.*
 
 ### **Blynk IoT Dashboard**
