@@ -43,6 +43,24 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 
 ---
 
+## 📸 Product Gallery
+
+### **Final Hardware Assembly**
+![Project Build Image 1](https://via.placeholder.com/800x450?text=Hardware+Assembly+View)
+*Full view of the hardware assembly including the motorized hinge and control hub.*
+
+### **Blynk IoT Dashboard**
+![Project Build Image 2](https://via.placeholder.com/800x450?text=Mobile+App+Interface)
+*The mobile interface showing manual light controls, door toggle, and moisture gauge.*
+
+---
+
+## 🎥 Demo Video
+[![Project Demo Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+*Click the image above to play the system demonstration on YouTube.*
+
+---
+
 ## 🚀 Features & Logic
 * **Anti-Corrosion Irrigation:** Soil moisture sensor is powered by **Pin 13** only every 10 seconds to prevent probe electrolysis.
 * **Spring-Latch Logic:** Solenoid retracts only during the "Open" phase. During "Close," the servo swings the door back to click shut mechanically.
