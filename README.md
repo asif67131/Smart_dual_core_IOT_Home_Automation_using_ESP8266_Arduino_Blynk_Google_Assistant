@@ -76,7 +76,7 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 
 ## 📂 Final Codes <a name="final-codes"></a>
 The complete firmware for both the Master (ESP8266) and Slave (Arduino Uno) units can be found here:
-* [**📂 Click here to view Project Source Codes on GitHub**](https://github.com/YourUsername/YourRepoName/tree/main/codes)
+* [**📂 Click here to view Project Source Codes on GitHub**](codes)
 
 ---
 
