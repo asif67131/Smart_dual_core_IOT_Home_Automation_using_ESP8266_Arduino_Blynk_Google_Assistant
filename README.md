@@ -52,7 +52,7 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 ## 📸 Product Gallery
 
 ### **Final Hardware Assembly**
-![Physical Connections](crkt_diag.jpg)
+![Physical Connections](xyz)
 *Connections.*
 
 ### **Flow Chart**
