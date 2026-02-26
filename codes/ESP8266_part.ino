@@ -1,100 +1,153 @@
-#define BLYNK_TEMPLATE_ID "TMPL3jo7qSjag"
+#define BLYNK_TEMPLATE_ID "abc"
 #define BLYNK_TEMPLATE_NAME "Dual core IOT hub"
-#define BLYNK_AUTH_TOKEN "gSf14GL2FHozZgQFG-eAEOpjAp-ux9l8"
+#define BLYNK_AUTH_TOKEN "abc"
 
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
-#include <ArduinoOTA.h>
 #include <SinricPro.h>
-#include <SinricProSwitch.h>
+#include <SinricProLight.h> 
 
-// WiFi Credentials
+// Credentials
 char auth[] = BLYNK_AUTH_TOKEN;
-char ssid[] = "ASIF CHAUDHRY";
-char pass[] = "11223344";
+char ssid[] = "abc";
+char pass[] = "abc";
 
-// Sinric Pro Credentials
-#define APP_KEY    "cd226588-e502-4883-980a-6828b452e7c1"
-#define APP_SECRET "c21782fc-0f94-4d1b-8bb9-a5975854ce30-a7648f36-b2c5-422c-9a9f-b5bbcfe25f18"
-#define ID_LIGHT_1 "699d94e9c2dbd7108b2ef5a5"
-#define ID_LIGHT_2 "699d9575db0f6e0b158f4514"
-#define ID_DOOR    "699d95b617b32c0941c51d5b"
+#define APP_KEY    "xyz"
+#define APP_SECRET "xyz"
+#define ID_LIGHT_1 "xyz"
+#define ID_LIGHT_2 "xyz"
+#define ID_DOOR    "xyz"
 
-// Global references for SinricPro v3.0 syntax
-SinricProSwitch& mySwitch1 = SinricPro[ID_LIGHT_1];
-SinricProSwitch& mySwitch2 = SinricPro[ID_LIGHT_2];
-SinricProSwitch& myDoor = SinricPro[ID_DOOR];
+const int onboardLED = 2; 
 
-const int espStatusLed = 13; // D7
-const int buzzer = 15;      // D8
+// LED Animation Variables
+int brightness = 0;
+int fadeAmount = 5;
+unsigned long lastLEDUpdate = 0;
 
-// SINRIC PRO CALLBACK
-bool onPowerState(const String &deviceId, bool &state) {
-  if (deviceId == ID_LIGHT_1) {
-    Serial.println(state ? "R0_ON" : "R0_OFF");
-    Blynk.virtualWrite(V0, state ? 1 : 0);
-  } 
-  else if (deviceId == ID_LIGHT_2) {
-    Serial.println(state ? "R1_ON" : "R1_OFF");
-    Blynk.virtualWrite(V1, state ? 1 : 0);
-  } 
-  else if (deviceId == ID_DOOR) {
-    if (state) {
-      Serial.println("DOOR_OPEN");
-      Blynk.virtualWrite(V2, 1);
-    } else {
-      Serial.println("DOOR_CLOSE");
-      Blynk.virtualWrite(V2, 0);
-    }
-  }
-  
-  // Feedback
-  digitalWrite(espStatusLed, HIGH);
-  digitalWrite(buzzer, HIGH); delay(100); digitalWrite(buzzer, LOW);
-  delay(1000); digitalWrite(espStatusLed, LOW);
+// Tracking local state
+bool stateL1 = false;
+bool stateL2 = false;
+bool stateDoor = false;
+
+// --- Sinric Pro Callbacks ---
+bool onPowerState_L1(const String &deviceId, bool &state) {
+  stateL1 = state;
+  Serial.println(state ? "L1_ON" : "L1_OFF");
+  Blynk.virtualWrite(V1, state);
   return true;
 }
 
-// BLYNK WRITE CALLBACKS
-BLYNK_WRITE(V0) { Serial.println(param.asInt() ? "R0_ON" : "R0_OFF"); mySwitch1.sendPowerStateEvent(param.asInt()); }
-BLYNK_WRITE(V1) { Serial.println(param.asInt() ? "R1_ON" : "R1_OFF"); mySwitch2.sendPowerStateEvent(param.asInt()); }
-BLYNK_WRITE(V2) { 
-  if(param.asInt()) { Serial.println("DOOR_OPEN"); } 
-  else { Serial.println("DOOR_CLOSE"); }
-  myDoor.sendPowerStateEvent(param.asInt());
+bool onPowerState_L2(const String &deviceId, bool &state) {
+  stateL2 = state;
+  Serial.println(state ? "L2_ON" : "L2_OFF");
+  Blynk.virtualWrite(V2, state);
+  return true;
+}
+
+bool onPowerState_Door(const String &deviceId, bool &state) {
+  stateDoor = state;
+  Serial.println(state ? "DR_OPEN" : "DR_CLOSE");
+  Blynk.virtualWrite(V3, state);
+  return true;
+}
+
+// --- Blynk Callbacks ---
+BLYNK_WRITE(V1) {
+  stateL1 = param.asInt();
+  Serial.println(stateL1 ? "L1_ON" : "L1_OFF");
+  SinricProLight &myLight = SinricPro[ID_LIGHT_1];
+  myLight.sendPowerStateEvent(stateL1);
+}
+
+BLYNK_WRITE(V2) {
+  stateL2 = param.asInt();
+  Serial.println(stateL2 ? "L2_ON" : "L2_OFF");
+  SinricProLight &myLight = SinricPro[ID_LIGHT_2];
+  myLight.sendPowerStateEvent(stateL2);
+}
+
+BLYNK_WRITE(V3) {
+  stateDoor = param.asInt();
+  Serial.println(stateDoor ? "DR_OPEN" : "DR_CLOSE");
+  SinricProLight &myDoor = SinricPro[ID_DOOR];
+  myDoor.sendPowerStateEvent(stateDoor);
+}
+
+BLYNK_WRITE(V4) { 
+  int val = param.asInt();
+  Serial.println(val ? "PUMP_ON" : "PUMP_OFF");
 }
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(espStatusLed, OUTPUT);
-  pinMode(buzzer, OUTPUT);
+  Serial.begin(9600); 
+  pinMode(onboardLED, OUTPUT);
   
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
   Blynk.begin(auth, ssid, pass);
-  ArduinoOTA.begin();
 
-  mySwitch1.onPowerState(onPowerState);
-  mySwitch2.onPowerState(onPowerState);
-  myDoor.onPowerState(onPowerState);
+  // Setup SinricPro devices
+  SinricProLight &light1 = SinricPro[ID_LIGHT_1];
+  light1.onPowerState(onPowerState_L1);
+
+  SinricProLight &light2 = SinricPro[ID_LIGHT_2];
+  light2.onPowerState(onPowerState_L2);
+
+  SinricProLight &door = SinricPro[ID_DOOR];
+  door.onPowerState(onPowerState_Door);
 
   SinricPro.begin(APP_KEY, APP_SECRET);
 }
 
 void loop() {
   Blynk.run();
-  SinricPro.handle();
-  ArduinoOTA.handle();
+  SinricPro.handle(); // Modern call for v4.1.x
+  handleLEDStatus();
+  handleIncomingSerial();
+}
 
-  // Sync back from Arduino (Physical buttons)
+void handleLEDStatus() {
+  unsigned long currentMillis = millis();
+  if (WiFi.status() != WL_CONNECTED) {
+    if (currentMillis - lastLEDUpdate >= 200) {
+      digitalWrite(onboardLED, !digitalRead(onboardLED));
+      lastLEDUpdate = currentMillis;
+    }
+    return;
+  }
+  if (currentMillis - lastLEDUpdate >= 30) {
+    brightness = brightness + fadeAmount;
+    if (brightness <= 0 || brightness >= 255) fadeAmount = -fadeAmount;
+    analogWrite(onboardLED, 255 - brightness); 
+    lastLEDUpdate = currentMillis;
+  }
+}
+
+void handleIncomingSerial() {
   if (Serial.available() > 0) {
-    String feedback = Serial.readStringUntil('\n');
-    feedback.trim();
-    if (feedback.startsWith("S")) {
-      int id = feedback.substring(1, 2).toInt();
-      int state = feedback.substring(2).toInt();
-      Blynk.virtualWrite(id, state);
-      if(id == 0) mySwitch1.sendPowerStateEvent(state == 1);
-      if(id == 1) mySwitch2.sendPowerStateEvent(state == 1);
+    String incoming = Serial.readStringUntil('\n');
+    incoming.trim();
+
+    if (incoming == "BTN1_PRESS") {
+      stateL1 = !stateL1;
+      Blynk.virtualWrite(V1, stateL1);
+      SinricProLight &myLight = SinricPro[ID_LIGHT_1];
+      myLight.sendPowerStateEvent(stateL1);
+    }
+    else if (incoming == "BTN2_PRESS") {
+      stateL2 = !stateL2;
+      Blynk.virtualWrite(V2, stateL2);
+      SinricProLight &myLight = SinricPro[ID_LIGHT_2];
+      myLight.sendPowerStateEvent(stateL2);
+    }
+    else if (incoming == "BTN_DOOR_PRESS") {
+      stateDoor = !stateDoor;
+      Blynk.virtualWrite(V3, stateDoor);
+      SinricProLight &myDoor = SinricPro[ID_DOOR];
+      myDoor.sendPowerStateEvent(stateDoor);
+    }
+    else if (incoming.startsWith("SOIL:")) {
+      int soilVal = incoming.substring(5).toInt();
+      Blynk.virtualWrite(V5, soilVal);
     }
   }
 }
