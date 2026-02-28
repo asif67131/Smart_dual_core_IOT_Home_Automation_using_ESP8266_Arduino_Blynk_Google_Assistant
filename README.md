@@ -1,73 +1,42 @@
 # 🏠 Dual-Core IoT Hub: Smart Home & Precision Irrigation System
 
-**Experience the future of home automation with a high-performance ecosystem that bridges Google Assistant voice intelligence and Blynk IoT mobility with industrial-grade hardware execution.** This project utilizes a dual-core architecture—an **ESP8266** for seamless cloud orchestration and an **Arduino Uno** for precision control over motorized hinges, solenoid security, and intelligent irrigation.
-
-## 🏠 System Architecture
-The system operates on a specialized **Master-Slave Serial Protocol** via UART at 9600 Baud:
-1. **Master (ESP8266 12E):** Cloud Gateway managing **Blynk IoT**, **Sinric Pro**, and **Google Home Automation** (via **Google Assistant**).
-2. **Slave (Arduino Uno):** Hardware Executor managing the **Servo**, **Solenoid**, **Pump**, and **Soil Sensor**.
-
----
+**Experience the future of home automation with a high-performance ecosystem that bridges Google Assistant voice intelligence and Blynk IoT mobility with industrial-grade hardware execution.** This project utilizes a dual-core architecture—an **ESP8266** for seamless cloud orchestration and an **Arduino Uno** for precision control.
 
 ## 🚀 Project Summary
-This hub integrates three major cloud ecosystems to provide a seamless user experience:
-* **Blynk IoT:** Provides a custom mobile dashboard with a real-time moisture gauge and manual override switches for total control from anywhere.
-* **Sinric Pro:** Acts as the bridge for professional smart home device emulation, making your DIY hardware look like official smart appliances.
-* **Google Home & Assistant:** Enables hands-free voice commands such as *"Hey Google, open the door"* or *"Turn on the garden lights,"* allowing for full **Google Home Automation** routines and ecosystem-wide accessibility.
+* **Blynk IoT:** Custom mobile dashboard with real-time moisture gauge (V5).
+* **Sinric Pro:** Professional smart device emulation for Light 1, 2, and Door.
+* **Google Home & Assistant:** Voice-controlled automation routines.
 
 ---
 
-## 🔐 Configuration & Security
-To maintain security, all sensitive credentials must be entered directly into the source code files. **Do not share the following values publicly.**
-
-### ESP8266 Configuration Requirements:
-* **WiFi:** SSID and Password for local network access.
-* **Blynk:** Template ID, Template Name, and Auth Token.
-* **Sinric Pro:** App Key, App Secret, and unique Device IDs.
-
----
-
-## 🔌 Circuit Connections
-
+## 🔌 Circuit Connections & Pin Mapping
 ### 1. The Serial Bridge (UART)
-A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to protect the ESP8266's 3.3V logic.
+Requires a **Voltage Divider** (10kΩ/20kΩ) on the Arduino's TX line.
 * **Arduino TX (Pin 1)** ⮕ `10kΩ Resistor` ⮕ **ESP8266 RX**
 * **ESP8266 RX** ⮕ `20kΩ Resistor` ⮕ **GND**
-* **ESP8266 TX** ⮕ **Arduino RX (Pin 0)**
 
-### 2. Arduino (Hardware Slave) Pin Mapping
-| Component | Arduino Pin | Function |
+### 2. Arduino Pin Layout
+| Component | Pin | Function |
 | :--- | :--- | :--- |
-| **Status LED** | D11 (PWM) | Fade/Flicker System Indicator |
-| **Relay 1 & 2** | D2, D3 | Light 1 & Light 2 Control |
-| **Relay 3** | D4 | 12V Solenoid Security Lock |
-| **Relay 4** | D5 | 5V Water Pump Control |
-| **Servo Signal** | D9 | Door Hinge PWM Control |
-| **Door LED** | D6 | Synchronized Entry Light |
-| **Buttons 1, 2, 3** | D7, D8, D12 | Manual Overrides (Lights & Door) |
-| **Soil VCC / SIG** | D13 / A0 | Anti-Corrosion Power & Signal |
+| **Relay 1, 2, 3, 4** | D2, D3, D4, D5 | Light 1, Light 2, Solenoid, Pump |
+| **Servo / Door LED** | D9 / D6 | Hinge Control & Entry Light |
+| **Buttons 1, 2, 3** | D7, D8, D12 | Manual Cloud Sync Overrides |
+| **Soil VCC / SIG** | D13 / A0 | 10s Anti-Corrosion Power Logic |
 
 ---
 
 ## 📸 Product Gallery
-
-### **Final Hardware Assembly**
-![Physical Connections](xyz)
-*Connections.*
-
-### **Flow Chart**
-![Circuit Flow-Chart](images/crkt_diag.jpg)
+![Circuit Flow-Chart](crkt_diag.jpg)
 *Flow-Chart for Connections.*
 
-### **Blynk IoT Dashboard**
-![Project Build Image 2](images/blynk_dash.jpg)
-*Physical Connections*
+![Mobile Dashboard](https://via.placeholder.com/800x450?text=Physical+Connections+View)
+*Physical Connections & Blynk Layout.*
 
 ---
 
 ## 🎥 Demo Video
 [![Project Demo Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
-*Click the image above to play the system demonstration on YouTube.*
+*Click to play the system demonstration on YouTube.*
 
 ---
 
@@ -78,14 +47,27 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 
 ---
 
-## 📂 Final Codes <a name="final-codes"></a>
-The complete firmware for both the Master (ESP8266) and Slave (Arduino Uno) units can be found here:
-* [**📂 Source Codes**](codes)
+## 🐞 Troubleshooting & Debug Report
+To ensure system stability, use the following isolation guide if issues arise:
+
+| Bug ID | Component | Symptom | Resolution |
+| :--- | :--- | :--- | :--- |
+| **001** | **UART Link** | No data on Blynk app | Swap TX/RX; Verify Common GND between boards. |
+| **002** | **Solenoid** | ESP8266 resets on trigger | Install 1N4007 Flyback Diode to stop EMF spikes. |
+| **003** | **Soil Sensor** | Reading is 0 or 1023 | Increase `delay(20)` after Pin 13 goes HIGH. |
+| **004** | **Servo** | Jittering / Vibrating | Ensure 5V Buck Converter provides at least 2A. |
+
+**Debug Tip:** Use the Arduino Serial Monitor (9600 Baud). If you see `BTN_PRESS` locally but not on the App, the hardware is fine—check your Cloud API keys.
 
 ---
 
-## 🤝 Social Connect <a name="social-connect"></a>
+## 📂 Final Codes <a name="final-codes"></a>
+* [**📂 Click here to view Project Source Codes on GitHub**](https://github.com/YourUsername/YourRepoName/tree/main/codes)
+
+---
+
+## 🤝 Social Connect
 **Developed by ASIF**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/your-linkedin-profile)
-[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:asif67131@gmail.com)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/your-profile)
+[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:your-email@gmail.com)
