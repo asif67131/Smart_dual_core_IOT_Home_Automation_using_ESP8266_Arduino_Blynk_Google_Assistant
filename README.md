@@ -60,9 +60,8 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 *Flow-Chart for Connections.*
 
 ### **Blynk IoT Dashboard**
-![Project Build Image 2](https://via.placeholder.com/800x450?text=Physical+Connections+View)
-![Project Build Image 2](images/blynk_dash.jpg)
-*Physical Connections*
+![Blynk Dashboard](images/blynk_dash.jpg)
+*Blynk Interface & Mobile Controls.*
 
 ---
 
@@ -79,6 +78,18 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 
 ---
 
+## 🐞 Troubleshooting & Debug Report
+If the system does not respond as expected, check the following common issues:
+
+| Bug ID | Component | Symptom | Resolution |
+| :--- | :--- | :--- | :--- |
+| **001** | **UART Link** | No data on Blynk/Serial | Verify Common GND between boards; Check if TX/RX are swapped. |
+| **002** | **Solenoid** | ESP8266 resets on trigger | Install 1N4007 Flyback Diode to stop inductive EMF spikes. |
+| **003** | **Soil Sensor** | Reading is constant 0/1023 | Increase `delay()` in code after powering Pin 13 to allow sensor stabilization. |
+| **004** | **Power** | Servo stutters or jittering | Use external 5V 2A source; do not power high-torque servos via Arduino 5V pin. |
+
+---
+
 ## 📂 Final Codes <a name="final-codes"></a>
 The complete firmware for both the Master (ESP8266) and Slave (Arduino Uno) units can be found here:
 * [**📂 Source Codes**](codes)
@@ -89,4 +100,4 @@ The complete firmware for both the Master (ESP8266) and Slave (Arduino Uno) unit
 **Developed by ASIF**
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/your-linkedin-profile)
-[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](asif67131@gmail.com)
+[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:asif67131@gmail.com)
