@@ -75,6 +75,7 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 * **Anti-Corrosion Irrigation:** Soil moisture sensor is powered by **Pin 13** only every 10 seconds to prevent probe electrolysis.
 * **Spring-Latch Logic:** Solenoid retracts only during the "Open" phase. During "Close," the servo swings the door back to click shut mechanically.
 * **Bi-directional Sync:** Manual button presses on the Arduino update the cloud UI in real-time across Blynk and Google Home.
+  
 
 ---
 
