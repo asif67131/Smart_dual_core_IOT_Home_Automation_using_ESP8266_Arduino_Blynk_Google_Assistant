@@ -39,11 +39,11 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 | Component | Arduino Pin | Function |
 | :--- | :--- | :--- |
 | **Status LED** | D11 (PWM) | Fade/Flicker System Indicator |
+| **Door LED** | D6 | Synchronized Entry Light |
 | **Relay 1 & 2** | D2, D3 | Light 1 & Light 2 Control |
 | **Relay 3** | D4 | 12V Solenoid Security Lock |
 | **Relay 4** | D5 | 5V Water Pump Control |
 | **Servo Signal** | D9 | Door Hinge PWM Control |
-| **Door LED** | D6 | Synchronized Entry Light |
 | **Buttons 1, 2, 3** | D7, D8, D12 | Manual Overrides (Lights & Door) |
 | **Soil VCC / SIG** | D13 / A0 | Anti-Corrosion Power & Signal |
 
