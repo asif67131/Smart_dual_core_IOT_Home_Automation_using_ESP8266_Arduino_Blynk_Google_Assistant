@@ -66,7 +66,7 @@ A **Voltage Divider** (10kΩ/20kΩ) is required on the Arduino's TX line to prot
 ---
 
 ## 🎥 Demo Video
-[![Project Demo Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://youtu.be/KAlVdrSQK3Y)
+[![Project Demo Video](images/unnamed.jpg)](https://youtu.be/KAlVdrSQK3Y)
 *Click the image above to play the system demonstration on YouTube.*
 
 ---
